@@ -72,7 +72,7 @@ if __name__ == '__main__':
     time_start = time.time()
     queue = deque(maxlen=20)  # https://www.geeksforgeeks.org/deque-in-python/
 
-    for batch_id, (img1, img2, label) in enumerate(trainLoader, start=1):  # TODO: Per batch?
+    for batch_id, (img1, img2, label) in enumerate(trainLoader, start=1):  # Per batch
         if batch_id > Flags.max_iter:
             break
         if Flags.cuda:
@@ -85,6 +85,7 @@ if __name__ == '__main__':
         output = net.forward(img1, img2)
         loss = loss_fn(output, label)
         loss_val += loss.item()
+        train_loss.append(loss_val)
 
         loss.backward()  # Backpropagation
         optimizer.step()
@@ -113,7 +114,6 @@ if __name__ == '__main__':
             print('[%d]\tTest set\tcorrect:\t%d\terror:\t%d\tprecision:\t%f'%(batch_id, right, error, right*1.0/(right+error)))
             print('*'*70)
             queue.append(right*1.0/(right+error))
-        train_loss.append(loss_val)  # TODO: if batch_id % Flags.show_every == 0: Then loss_val=0 --> is it right?
     #  learning_rate = learning_rate * 0.95
 
     with open('train_loss', 'wb') as f:
