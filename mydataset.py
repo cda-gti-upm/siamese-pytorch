@@ -14,31 +14,29 @@ class OmniglotTrain(Dataset):
     def __init__(self, dataPath, transform=None):
         super(OmniglotTrain, self).__init__()
         np.random.seed(0)
-        # self.dataset = dataset
         self.transform = transform
-        self.datas, self.num_classes = self.loadToMem(dataPath)
+        self.datas, self.num_classes = self.loadToMem(dataPath)  # Every character in an alphabet is a class
 
     def loadToMem(self, dataPath):
         print("begin loading training dataset to memory")
         datas = {}
         agrees = [0, 90, 180, 270]
         idx = 0
-        for agree in agrees:
-            for alphaPath in os.listdir(dataPath):
-                for charPath in os.listdir(os.path.join(dataPath, alphaPath)):
+        for agree in agrees:  # Generate several version with these rotations
+            for alphaPath in os.listdir(os.path.abspath(dataPath)):
+                for charPath in os.listdir(os.path.abspath(os.path.join(dataPath, alphaPath))):
                     datas[idx] = []
-                    for samplePath in os.listdir(os.path.join(dataPath, alphaPath, charPath)):
-                        filePath = os.path.join(dataPath, alphaPath, charPath, samplePath)
-                        datas[idx].append(Image.open(filePath).rotate(agree).convert('L'))
+                    for samplePath in os.listdir(os.path.abspath(os.path.join(dataPath, alphaPath, charPath))):
+                        filePath = os.path.abspath(os.path.join(dataPath, alphaPath, charPath, samplePath))
+                        datas[idx].append(Image.open(filePath).rotate(agree).convert('L'))  # convert('L'): gray scale (luma) conversion
                     idx += 1
         print("finish loading training dataset to memory")
         return datas, idx
 
     def __len__(self):
-        return  21000000
+        return 21000000  #Why? Just a large number?
 
     def __getitem__(self, index):
-        # image1 = random.choice(self.dataset.imgs)
         label = None
         img1 = None
         img2 = None
@@ -80,11 +78,11 @@ class OmniglotTest(Dataset):
         print("begin loading test dataset to memory")
         datas = {}
         idx = 0
-        for alphaPath in os.listdir(dataPath):
-            for charPath in os.listdir(os.path.join(dataPath, alphaPath)):
+        for alphaPath in os.listdir(os.path.abspath(dataPath)):
+            for charPath in os.listdir(os.path.abspath(os.path.join(dataPath, alphaPath))):
                 datas[idx] = []
-                for samplePath in os.listdir(os.path.join(dataPath, alphaPath, charPath)):
-                    filePath = os.path.join(dataPath, alphaPath, charPath, samplePath)
+                for samplePath in os.listdir(os.path.abspath(os.path.join(dataPath, alphaPath, charPath))):
+                    filePath = os.path.abspath(os.path.join(dataPath, alphaPath, charPath, samplePath))
                     datas[idx].append(Image.open(filePath).convert('L'))
                 idx += 1
         print("finish loading test dataset to memory")
@@ -94,10 +92,10 @@ class OmniglotTest(Dataset):
         return self.times * self.way
 
     def __getitem__(self, index):
-        idx = index % self.way
+        idx = index % self.way  # Defines the proportion of pairs of the same class versus different classes
         label = None
         # generate image pair from same class
-        if idx == 0:
+        if idx == 0:  # What happens if the first time idx !=0 and self.c1=None
             self.c1 = random.randint(0, self.num_classes - 1)
             self.img1 = random.choice(self.datas[self.c1])
             img2 = random.choice(self.datas[self.c1])
@@ -115,6 +113,8 @@ class OmniglotTest(Dataset):
 
 
 # test
+'''
 if __name__=='__main__':
     omniglotTrain = OmniglotTrain('./images_background', 30000*8)
     print(omniglotTrain)
+'''
